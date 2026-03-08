@@ -4,17 +4,22 @@ import {
   ItalicFeature,
   LinkFeature,
   ParagraphFeature,
-  lexicalEditor,
   UnderlineFeature,
-  type LinkFields,
+  HeadingFeature,
+  UnorderedListFeature,
+  OrderedListFeature,
+  lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
 export const defaultLexical = lexicalEditor({
   features: [
     ParagraphFeature(),
-    UnderlineFeature(),
+    HeadingFeature(),
     BoldFeature(),
     ItalicFeature(),
+    UnderlineFeature(),
+    UnorderedListFeature(),
+    OrderedListFeature(),
     LinkFeature({
       enabledCollections: ['pages', 'posts'],
       fields: ({ defaultFields }) => {
@@ -28,17 +33,7 @@ export const defaultLexical = lexicalEditor({
           {
             name: 'url',
             type: 'text',
-            admin: {
-              condition: (_data, siblingData) => siblingData?.linkType !== 'internal',
-            },
-            label: ({ t }) => t('fields:enterURL'),
             required: true,
-            validate: ((value, options) => {
-              if ((options?.siblingData as LinkFields)?.linkType === 'internal') {
-                return true // no validation needed, as no url should exist for internal links
-              }
-              return value ? true : 'URL is required'
-            }) as TextFieldSingleValidation,
           },
         ]
       },

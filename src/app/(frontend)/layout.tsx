@@ -5,7 +5,10 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import React from 'react'
 
+import { getActiveProjects } from '@/lib/getActiveProjects'
+
 import { AdminBar } from '@/components/AdminBar'
+import Navbar from '@/components/Navbar/Navbar'
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/Header/Component'
 import { Providers } from '@/providers'
@@ -15,6 +18,19 @@ import { draftMode } from 'next/headers'
 
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
+
+export const dynamic = 'force-dynamic'
+
+const projects = await getActiveProjects()
+
+const links = [
+  { title: 'Home', path: '/' },
+
+  ...projects.map((p) => ({
+    title: p.navTitle || p.title,
+    path: `/projects/${p.slug}`,
+  })),
+]
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
@@ -28,13 +44,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <Providers>
-          <AdminBar
+          {/* <AdminBar
             adminBarProps={{
               preview: isEnabled,
             }}
-          />
+          /> */}
 
-          <Header />
+          <Navbar links={links} />
+          {/* <Header /> */}
           {children}
           <Footer />
         </Providers>
