@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
 import crypto from 'crypto'
 
 function normaliseRegistration(reg: string) {
@@ -7,18 +8,18 @@ function normaliseRegistration(reg: string) {
 }
 
 function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const payload = await getPayload({ config })
 
     // ---------------------------------------
     // correlation id
     // ---------------------------------------
 
-    const correlationId =
-      request.headers.get('X-Correlation-Id') ?? crypto.randomUUID()
+    const correlationId = request.headers.get('X-Correlation-Id') ?? crypto.randomUUID()
 
     // ---------------------------------------
     // simulator behaviour overrides
@@ -35,7 +36,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (simulatedError) {
-
       const status = Number(simulatedError)
 
       return NextResponse.json(
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         {
           status: status || 500,
           headers: { 'X-Correlation-Id': correlationId },
-        }
+        },
       )
     }
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         {
           status: 400,
           headers: { 'X-Correlation-Id': correlationId },
-        }
+        },
       )
     }
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         {
           status: 401,
           headers: { 'X-Correlation-Id': correlationId },
-        }
+        },
       )
     }
 
@@ -110,7 +110,27 @@ export async function POST(request: NextRequest) {
     // read body
     // ---------------------------------------
 
-    const body = await request.json()
+    let body: any
+
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        {
+          errors: [
+            {
+              status: '400',
+              code: 'INVALID_JSON',
+              title: 'Invalid JSON body',
+            },
+          ],
+        },
+        {
+          status: 400,
+          headers: { 'X-Correlation-Id': correlationId },
+        },
+      )
+    }
 
     const registration = body?.registrationNumber
 
@@ -129,7 +149,7 @@ export async function POST(request: NextRequest) {
         {
           status: 400,
           headers: { 'X-Correlation-Id': correlationId },
-        }
+        },
       )
     }
 
@@ -162,7 +182,7 @@ export async function POST(request: NextRequest) {
         {
           status: 404,
           headers: { 'X-Correlation-Id': correlationId },
-        }
+        },
       )
     }
 
@@ -174,8 +194,8 @@ export async function POST(request: NextRequest) {
         'X-Correlation-Id': correlationId,
       },
     })
-
   } catch (err) {
+    console.error('VEHICLE API ERROR:', err)
 
     const correlationId = crypto.randomUUID()
 
@@ -192,7 +212,7 @@ export async function POST(request: NextRequest) {
       {
         status: 500,
         headers: { 'X-Correlation-Id': correlationId },
-      }
+      },
     )
   }
 }
