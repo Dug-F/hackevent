@@ -11,6 +11,8 @@ export const ApiKeys: CollectionConfig = {
   hooks: {
     beforeValidate: [
       ({ data }) => {
+        if (!data) return data
+        
         if (!data.apiKey) {
           const random = crypto.randomBytes(16).toString('hex')
           data.apiKey = `dvla_test_${random}`
